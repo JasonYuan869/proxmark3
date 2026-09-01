@@ -53,6 +53,7 @@ uint8_t g_DemodBuffer[MAX_DEMOD_BUF_LEN] = { 0x00 };
 size_t g_DemodBufferLen = 0;
 int32_t g_DemodStartIdx = 0;
 int g_DemodClock = 0;
+static pm3_autodemod_result_t g_AutoDemodResult = {0};
 
 static int CmdHelp(const char *Cmd);
 
@@ -81,6 +82,14 @@ bool getDemodBuff(uint8_t *buff, size_t *size) {
     *size = (*size > g_DemodBufferLen) ? g_DemodBufferLen : *size;
 
     memcpy(buff, g_DemodBuffer, *size);
+    return true;
+}
+
+bool getAutoDemodResult(pm3_autodemod_result_t *result) {
+    if (result == NULL || g_AutoDemodResult.valid == false) {
+        return false;
+    }
+    *result = g_AutoDemodResult;
     return true;
 }
 
@@ -5452,6 +5461,8 @@ static void autodemod_quality(void) {
 
 static int CmdAutoDemod(const char *Cmd) {
 
+    memset(&g_AutoDemodResult, 0, sizeof(g_AutoDemodResult));
+
     CLIParserContext *ctx;
     CLIParserInit(&ctx, "data autodemod",
                   "Tries to work out the modulation, encoding and clock of the wave in the GraphBuffer then run the matching demodulator\n"
@@ -5694,6 +5705,22 @@ static int CmdAutoDemod(const char *Cmd) {
         if (autodemod_dispatch(h, clk, invert, amp, verbose) == PM3_SUCCESS && g_DemodBufferLen > 0) {
 
             autodemod_reslice(h, autodemod_markers());
+
+            g_AutoDemodResult.valid = true;
+            g_AutoDemodResult.modulation = h->mod;
+            g_AutoDemodResult.encoding = h->enc;
+            g_AutoDemodResult.clock = clk;
+            g_AutoDemodResult.fchigh = h->fc_hi;
+            g_AutoDemodResult.fclow = h->fc_lo;
+            g_AutoDemodResult.carrier = h->fc;
+            g_AutoDemodResult.rank = (int)i + 1;
+            g_AutoDemodResult.errors = autodemod_markers();
+            g_AutoDemodResult.promoted = fit.promoted && i == 0;
+            g_AutoDemodResult.inverted = invert;
+            g_AutoDemodResult.clock_fine = h->clk_fine;
+            g_AutoDemodResult.margin = h->margin;
+            g_AutoDemodResult.snr = h->snr_dd;
+            g_AutoDemodResult.eye = h->eye;
 
             PrintAndLogEx(SUCCESS, "  demodulated... " _GREEN_("%zu") " bits into the DemodBuffer", g_DemodBufferLen);
             autodemod_quality();

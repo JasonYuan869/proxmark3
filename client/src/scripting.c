@@ -43,6 +43,9 @@
 #include "protocols.h"
 #include "fileutils.h"    // searchfile
 #include "cmdlf.h"        // lf_config
+#include "cmddata.h"      // GraphBuffer demodulation results
+#include "graph.h"        // GraphBuffer samples
+#include "pm3_fit.h"      // modulation and encoding names
 #include "generator.h"
 #include "cmdlfem4x05.h"  // read 4305
 #include "cmdlfem4x50.h"  // read 4350
@@ -422,6 +425,67 @@ static int l_kbd_enter_pressed(lua_State *L) {
 static int l_CmdConsole(lua_State *L) {
     CommandReceived((char *)luaL_checkstring(L, 1));
     return 0;
+}
+
+static int l_get_graph_buffer(lua_State *L) {
+    if (g_GraphTraceLen == 0) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    lua_createtable(L, (int)g_GraphTraceLen, 0);
+    for (size_t i = 0; i < g_GraphTraceLen; i++) {
+        lua_pushinteger(L, g_GraphBuffer[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    return 1;
+}
+
+static void lua_table_set_integer(lua_State *L, const char *key, lua_Integer value) {
+    lua_pushinteger(L, value);
+    lua_setfield(L, -2, key);
+}
+
+static void lua_table_set_number(lua_State *L, const char *key, lua_Number value) {
+    lua_pushnumber(L, value);
+    lua_setfield(L, -2, key);
+}
+
+static void lua_table_set_boolean(lua_State *L, const char *key, bool value) {
+    lua_pushboolean(L, value);
+    lua_setfield(L, -2, key);
+}
+
+static void lua_table_set_string(lua_State *L, const char *key, const char *value) {
+    lua_pushstring(L, value);
+    lua_setfield(L, -2, key);
+}
+
+static int l_get_autodemod(lua_State *L) {
+    pm3_autodemod_result_t result;
+    if (getAutoDemodResult(&result) == false || g_DemodBufferLen == 0) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    lua_createtable(L, 0, 17);
+    lua_table_set_string(L, "modulation", pm3_mod_name(result.modulation));
+    lua_table_set_string(L, "encoding", pm3_enc_name(result.encoding));
+    lua_table_set_integer(L, "clock", result.clock);
+    lua_table_set_integer(L, "fchigh", result.fchigh);
+    lua_table_set_integer(L, "fclow", result.fclow);
+    lua_table_set_integer(L, "carrier", result.carrier);
+    lua_table_set_integer(L, "rank", result.rank);
+    lua_table_set_integer(L, "errors", result.errors);
+    lua_table_set_boolean(L, "promoted", result.promoted);
+    lua_table_set_boolean(L, "inverted", result.inverted);
+    lua_table_set_number(L, "clock_fine", result.clock_fine);
+    lua_table_set_number(L, "margin", result.margin);
+    lua_table_set_number(L, "snr", result.snr);
+    lua_table_set_number(L, "eye", result.eye);
+    lua_pushlstring(L, (const char *)g_DemodBuffer, g_DemodBufferLen);
+    lua_setfield(L, -2, "bits");
+    return 1;
 }
 
 static int l_iso15693_crc(lua_State *L) {
@@ -1356,6 +1420,8 @@ int set_pm3_libraries(lua_State *L) {
         {"kbd_enter_pressed",           l_kbd_enter_pressed},
         {"clearCommandBuffer",          l_clearCommandBuffer},
         {"console",                     l_CmdConsole},
+        {"get_graph_buffer",            l_get_graph_buffer},
+        {"get_autodemod",               l_get_autodemod},
         {"iso15693_crc",                l_iso15693_crc},
         {"iso14443b_crc",               l_iso14443b_crc},
         {"aes128_decrypt",              l_aes128decrypt_cbc},

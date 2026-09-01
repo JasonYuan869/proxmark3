@@ -30,6 +30,24 @@ extern "C" {
 
 int CmdData(const char *Cmd);
 
+typedef struct {
+    bool valid;
+    int modulation;
+    int encoding;
+    int clock;
+    int fchigh;
+    int fclow;
+    int carrier;
+    int rank;
+    size_t errors;
+    bool promoted;
+    bool inverted;
+    double clock_fine;
+    double margin;
+    double snr;
+    double eye;
+} pm3_autodemod_result_t;
+
 // Still quite work to do here to provide proper functions for internal usage...
 /*
 int Cmdaskrawdemod(const char *Cmd);
@@ -80,6 +98,7 @@ int printDemodBuff(uint8_t offset, bool strip_leading, bool invert, bool print_h
 
 void setDemodBuff(const uint8_t *buff, size_t size, size_t start_idx);
 bool getDemodBuff(uint8_t *buff, size_t *size);
+bool getAutoDemodResult(pm3_autodemod_result_t *result);
 int AutoCorrelate(const int *in, int *out, size_t len, size_t window, bool SaveGrph, bool verbose);
 
 int getSamples(uint32_t n, bool verbose);

@@ -65,6 +65,10 @@ endif
 ifneq (,$(findstring WITH_STANDALONE_LF_SAMYRUN,$(APP_CFLAGS)))
     SRC_STANDALONE = lf_samyrun.c
 endif
+# WITH_STANDALONE_LF_AUTOREPLAY
+ifneq (,$(findstring WITH_STANDALONE_LF_AUTOREPLAY,$(APP_CFLAGS)))
+    SRC_STANDALONE = lf_autoreplay.c
+endif
 # WITH_STANDALONE_LF_PROXBRUTE
 ifneq (,$(findstring WITH_STANDALONE_LF_PROXBRUTE,$(APP_CFLAGS)))
     SRC_STANDALONE = lf_proxbrute.c

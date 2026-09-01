@@ -31,6 +31,7 @@ As such the information inside may be false or hallucinated.
 
 | Mode ID | Document | Description | Hardware |
 |---------|----------|-------------|----------|
+| LF_AUTOREPLAY | [AutoReplay](../../doc/standalone/lf_autoreplay.md) | Periodic LF auto read/simulate/T5577 clone | Generic |
 | LF_SAMYRUN | [SamyRun](../../doc/standalone/lf_samyrun.md) | HID26 read/clone/simulate (Samy Kamkar) | Generic |
 | LF_EM4100EMUL | [EM4100 Emulator](../../doc/standalone/lf_em4100emul.md) | Simulate predefined EM4100 tag IDs | Generic |
 | LF_EM4100RSWB | [EM4100 RSWB](../../doc/standalone/lf_em4100rswb.md) | Read/simulate/write/brute EM4100 (4 slots) | RDV4 (flash) |
